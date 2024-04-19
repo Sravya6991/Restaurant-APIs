@@ -1,13 +1,13 @@
 const express = require("express");
 const MongoClient = require("mongodb").MongoClient;
-const mongoURL = "mongodb://127.0.0.1:27017";
-
 require("dotenv").config();
-const stripe = require('stripe')("sk_test_51Nx2IESFreFK53KxHY5CGcVnqmtjYiyE5epcTYBEZy78ZBY4swXBtZsvh2l5HwJjX8ep9YRm9BppAHTV9znGNpYa00Ql9WSln6");
 
-// const data = require("./Data");
+const mongoURL = process.env.MONGODB_URL;
 
-let db
+const stripe = require('stripe')(process.env.API_SECRET_KEY);
+
+let db;
+
 const app = express()
 
 // middlewares
@@ -260,12 +260,11 @@ app.delete("/deleteorders/:id", (req, res) => {
 
 //  stripe payments
 const calculateOrderAmount = (item) => {
-        return Number(item.cost)
+    return Number(item.cost)
 }
 
 app.post("/create-payment-intent", async(req, res) => {
     const {product} = req.body;
-    console.log(product)
 
     const paymentIntent = await stripe.paymentIntents.create({
         amount: calculateOrderAmount(product),
@@ -280,10 +279,10 @@ app.post("/create-payment-intent", async(req, res) => {
 })
 
 MongoClient.connect(mongoURL, (err, client) => {
-    console.log("Mongodb is connected")
-    if(err) console.log("Error while connectiong")
-    db = client.db("zomato-api");
+    if(err) throw err;
+    db = client.db('zomato');
     app.listen(8000, ()=>{
         console.log("server is running at port: 8000");
+        console.log("Mongodb is connected")
     });
-})
+});
